@@ -7,7 +7,7 @@ import { CategoriesModule } from "./modules/categories/categories.module";
 import { WalletsModule } from "./modules/wallets/wallets.module";
 import { TransactionsModule } from "./modules/transactions/transactions.module";
 import { GroupsModule } from "./modules/groups/groups.module";
-import { AiModule } from './modules/ai/ai.module';
+import { AiModule } from "./modules/ai/ai.module";
 
 @Module({
   imports: [

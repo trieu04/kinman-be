@@ -5,7 +5,7 @@ import { GroupEntity } from "./group.entity";
 
 @Entity()
 export class GroupMemberEntity extends SoftDeleteEntity {
-  @ManyToOne(() => GroupEntity, (group) => group.members)
+  @ManyToOne(() => GroupEntity, group => group.members)
   group: GroupEntity;
 
   @ManyToOne(() => UserEntity)

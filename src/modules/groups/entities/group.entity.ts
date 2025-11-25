@@ -14,6 +14,6 @@ export class GroupEntity extends SoftDeleteEntity {
   @ManyToOne(() => UserEntity)
   creator: UserEntity;
 
-  @OneToMany(() => GroupMemberEntity, (member) => member.group)
+  @OneToMany(() => GroupMemberEntity, member => member.group)
   members: GroupMemberEntity[];
 }

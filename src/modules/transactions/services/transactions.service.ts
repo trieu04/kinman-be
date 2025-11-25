@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Between, Repository } from "typeorm";
 import { TransactionEntity } from "../entities/transaction.entity";
@@ -80,7 +80,7 @@ export class TransactionsService {
 
   async remove(id: string, userId: string) {
     const transaction = await this.findOne(id, userId);
-    
+
     // Revert balance
     const amount = transaction.category.type === CategoryType.INCOME ? -transaction.amount : transaction.amount;
     await this.walletsService.updateBalance(transaction.wallet.id, amount);

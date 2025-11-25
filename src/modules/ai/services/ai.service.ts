@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Injectable } from "@nestjs/common";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 @Injectable()
 export class AiService {
@@ -7,7 +7,7 @@ export class AiService {
   private model: any;
 
   constructor() {
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
     this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   }
 
@@ -26,13 +26,14 @@ export class AiService {
     const result = await this.model.generateContent(prompt);
     const response = await result.response;
     const textResponse = response.text();
-    
+
     try {
       // Clean up markdown code blocks if present
-      const jsonString = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+      const jsonString = textResponse.replace(/```json/g, "").replace(/```/g, "").trim();
       return JSON.parse(jsonString);
-    } catch (e) {
-      console.error("Failed to parse AI response", textResponse);
+    }
+    catch (e) {
+      console.error("Failed to parse AI response", textResponse, e);
       throw new Error("Failed to parse transaction from text");
     }
   }

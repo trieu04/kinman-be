@@ -93,6 +93,6 @@ import { AuthCookieInterceptor } from "./interceptors/auth-cookie.interceptor";
     // Interceptors
     AuthCookieInterceptor,
   ],
-  exports: [JwtAuthGuard, GoogleOAuthService, GitHubOAuthService],
+  exports: [JwtAuthGuard, GoogleOAuthService, GitHubOAuthService, JwtAuthService, AccountService],
 })
 export class AuthModule { }

@@ -31,10 +31,9 @@ export class CreateGroupExpenseDto {
   @IsDateString()
   date?: string;
 
-  @ApiProperty({ enum: SplitType })
+  @ApiProperty({ enum: SplitType, default: SplitType.EQUAL })
   @IsEnum(SplitType)
-  @IsNotEmpty()
-  splitType: SplitType;
+  splitType: SplitType = SplitType.EQUAL;
 
   @ApiProperty({ type: [ExpenseSplitDto], required: false })
   @IsOptional()

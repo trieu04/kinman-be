@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { GroupExpenseEntity, SplitType } from "../entities/group-expense.entity";
@@ -30,7 +30,7 @@ export class GroupExpensesService {
       // If splits provided, use them. If not, split among all.
       if (!splits || splits.length === 0) {
         const amountPerPerson = dto.amount / memberCount;
-        splits = group.members.map((m) => ({
+        splits = group.members.map(m => ({
           userId: m.user.id,
           amount: Number(amountPerPerson.toFixed(2)),
         }));
@@ -70,7 +70,7 @@ export class GroupExpensesService {
     expenses.forEach((expense) => {
       const payerId = expense.payer.id;
       const amount = Number(expense.amount);
-      
+
       // Payer gets positive balance (they paid, so they are owed)
       balances[payerId] = (balances[payerId] || 0) + amount;
 
@@ -87,8 +87,10 @@ export class GroupExpensesService {
     const creditors: { id: string; amount: number }[] = [];
 
     Object.entries(balances).forEach(([id, amount]) => {
-      if (amount < -0.01) debtors.push({ id, amount }); // Negative balance means they owe
-      if (amount > 0.01) creditors.push({ id, amount }); // Positive balance means they are owed
+      if (amount < -0.01)
+        debtors.push({ id, amount }); // Negative balance means they owe
+      if (amount > 0.01)
+        creditors.push({ id, amount }); // Positive balance means they are owed
     });
 
     // Sort by magnitude to optimize (greedy approach)
@@ -118,8 +120,10 @@ export class GroupExpensesService {
       creditor.amount -= amount;
 
       // Move to next if settled
-      if (Math.abs(debtor.amount) < 0.01) i++;
-      if (creditor.amount < 0.01) j++;
+      if (Math.abs(debtor.amount) < 0.01)
+        i++;
+      if (creditor.amount < 0.01)
+        j++;
     }
 
     return debts;

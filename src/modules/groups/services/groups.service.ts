@@ -54,7 +54,7 @@ export class GroupsService {
       throw new NotFoundException("Group not found");
     }
 
-    const isMember = group.members.some((m) => m.user.id === userId);
+    const isMember = group.members.some(m => m.user.id === userId);
     if (!isMember) {
       throw new NotFoundException("Group not found or you are not a member");
     }
