@@ -8,6 +8,7 @@ import { WalletsModule } from "./modules/wallets/wallets.module";
 import { TransactionsModule } from "./modules/transactions/transactions.module";
 import { GroupsModule } from "./modules/groups/groups.module";
 import { AiModule } from "./modules/ai/ai.module";
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AiModule } from "./modules/ai/ai.module";
     TransactionsModule,
     GroupsModule,
     AiModule,
+    ReportsModule,
   ],
   controllers: [],
   providers: [],
