@@ -36,15 +36,32 @@ export class GroupsService {
       user: { id: userId },
     });
 
-    return group;
+    // Return group with members loaded
+    return this.groupRepo.findOne({
+      where: { id: group.id },
+      relations: ["members", "members.user"],
+    });
   }
 
   async findAll(userId: string) {
-    return this.groupRepo.find({
-      where: { members: { user: { id: userId } } },
-      relations: ["members", "members.user"],
-      order: { createdAt: "DESC" },
-    });
+    // Dùng query builder để không bị filter mất các member khác khi join với điều kiện userId
+    return this.groupRepo
+      .createQueryBuilder("group")
+      .leftJoinAndSelect("group.members", "members")
+      .leftJoinAndSelect("members.user", "memberUser")
+      .where((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select("1")
+          .from("group_member_entity", "gm")
+          .where("gm.group_id = group.id")
+          .andWhere("gm.user_id = :userId")
+          .getQuery();
+        return `EXISTS (${subQuery})`;
+      })
+      .setParameter("userId", userId)
+      .orderBy("group.createdAt", "DESC")
+      .getMany();
   }
 
   async findOne(id: string, userId: string) {

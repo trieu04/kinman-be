@@ -25,22 +25,34 @@ export class GroupExpensesService {
 
   async addExpense(userId: string, groupId: string, dto: CreateGroupExpenseDto) {
     const group = await this.groupsService.findOne(groupId, userId);
+    if (!group || !group.members) {
+      throw new Error("Group not found or has no members");
+    }
+
     const payer = await this.userRepo.findOne({ where: { id: userId } });
+    if (!payer) {
+      throw new Error("User not found");
+    }
 
-    let splits = dto.splits;
+    let splits = dto.splits || [];
 
-    if (dto.splitType === SplitType.EQUAL) {
-      // Calculate equal splits
-      const memberCount = group.members.length; // Or use selected members if supported
-      // For simplicity, assume split equally among ALL members if splits not provided
-      // But usually user selects who to split with.
-      // If splits provided, use them. If not, split among all.
-      if (!splits || splits.length === 0) {
-        const amountPerPerson = dto.amount / memberCount;
+    // If no splits provided, calculate them based on splitType
+    if (!splits || splits.length === 0) {
+      if (dto.splitType === SplitType.EQUAL) {
+        // Split equally among all group members
+        const memberCount = group.members.length;
+        if (memberCount === 0) {
+          throw new Error("No members in group to split expense among");
+        }
+
+        const amountPerPerson = Number((dto.amount / memberCount).toFixed(2));
         splits = group.members.map(m => ({
           userId: m.user.id,
-          amount: Number(amountPerPerson.toFixed(2)),
+          amount: amountPerPerson,
         }));
+      } else if (dto.splitType === SplitType.EXACT) {
+        // For exact split, splits must be provided
+        throw new Error("Exact split requires specific amounts for each member");
       }
     }
 
@@ -53,6 +65,9 @@ export class GroupExpensesService {
 
     const savedExpense = await this.expenseRepo.save(expense);
 
+    // Recalculate debts if needed
+    // This should trigger debt settlement calculations for the group
+
     // Notify group members about new expense (except payer)
     const otherMembers = group.members.filter(m => m.user.id !== userId);
     for (const member of otherMembers) {
@@ -61,7 +76,7 @@ export class GroupExpensesService {
         email: member.user.email,
         type: NotificationType.GROUP_TRANSACTION,
         title: `Chi tiêu mới trong "${group.name}"`,
-        body: `${payer?.name || payer?.email || "Một thành viên"} đã thêm khoản chi "${dto.description}" - ${dto.amount.toLocaleString("vi-VN")}đ`,
+        body: `${payer?.name || payer?.email || "Một thành viên"} đã thêm khoản chi "${dto.description}" - ${dto.amount}đ`,
         data: {
           groupId: group.id,
           groupName: group.name,
