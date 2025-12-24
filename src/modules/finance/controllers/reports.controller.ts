@@ -26,4 +26,15 @@ export class ReportsController {
     const yearNum = year ? Number.parseInt(year, 10) : new Date().getFullYear();
     return this.reportsService.getMonthlyTrend(req.user.id, yearNum);
   }
+
+  @Get("daily-trend")
+  async getDailyTrend(
+    @Req() req: any,
+    @Query("startDate") startDate?: string,
+    @Query("endDate") endDate?: string,
+  ) {
+    const parsedStart = startDate ? new Date(startDate) : undefined;
+    const parsedEnd = endDate ? new Date(endDate) : undefined;
+    return this.reportsService.getDailyTrend(req.user.id, parsedStart, parsedEnd);
+  }
 }

@@ -29,9 +29,17 @@ export class GroupExpensesService {
       throw new Error("Group not found or has no members");
     }
 
-    const payer = await this.userRepo.findOne({ where: { id: userId } });
+    // Use paidBy from DTO if provided, otherwise default to current user
+    const payerId = dto.paidBy || userId;
+    const payer = await this.userRepo.findOne({ where: { id: payerId } });
     if (!payer) {
-      throw new Error("User not found");
+      throw new Error("Payer not found");
+    }
+
+    // Verify payer is a member of the group
+    const isPayerMember = group.members.some(m => m.user.id === payerId);
+    if (!isPayerMember) {
+      throw new Error("Payer must be a member of the group");
     }
 
     let splits = dto.splits || [];
@@ -59,7 +67,7 @@ export class GroupExpensesService {
     const expense = this.expenseRepo.create({
       ...dto,
       group,
-      payer: { id: userId },
+      payer: { id: payerId },
       splits,
     });
 
@@ -108,9 +116,16 @@ export class GroupExpensesService {
       relations: ["payer"],
     });
 
+    // Get all settlements for this group
+    const settlements = await this.settlementRepo.find({
+      where: { group: { id: groupId } },
+      relations: ["fromUser", "toUser"],
+    });
+
     // Calculate net balances
     const balances: Record<string, number> = {};
 
+    // Process expenses
     expenses.forEach((expense) => {
       const payerId = expense.payer.id;
       const amount = Number(expense.amount);
@@ -124,6 +139,14 @@ export class GroupExpensesService {
           balances[split.userId] = (balances[split.userId] || 0) - Number(split.amount);
         });
       }
+    });
+
+    // Process settlements: fromUser pays toUser
+    // This reduces fromUser's debt (increases their balance) and reduces toUser's credit (decreases their balance)
+    settlements.forEach((settlement) => {
+      const amount = Number(settlement.amount);
+      balances[settlement.fromUser.id] = (balances[settlement.fromUser.id] || 0) + amount;
+      balances[settlement.toUser.id] = (balances[settlement.toUser.id] || 0) - amount;
     });
 
     // Separate into debtors and creditors
@@ -170,7 +193,22 @@ export class GroupExpensesService {
         j++;
     }
 
-    return debts;
+    // Fetch user data for all debts
+    const userIds = new Set<string>();
+    debts.forEach(debt => {
+      userIds.add(debt.from);
+      userIds.add(debt.to);
+    });
+
+    const users = await this.userRepo.findByIds(Array.from(userIds));
+    const userMap = new Map(users.map(u => [u.id, u]));
+
+    // Map debts to include full user objects
+    return debts.map(debt => ({
+      from: userMap.get(debt.from),
+      to: userMap.get(debt.to),
+      amount: debt.amount,
+    }));
   }
 
   async settleUp(userId: string, groupId: string, dto: SettleUpDto) {
@@ -178,7 +216,7 @@ export class GroupExpensesService {
 
     const settlement = this.settlementRepo.create({
       group,
-      fromUser: { id: userId },
+      fromUser: { id: dto.fromUserId },
       toUser: { id: dto.toUserId },
       amount: dto.amount,
     });

@@ -5,6 +5,11 @@ export class SettleUpDto {
   @ApiProperty()
   @IsUUID()
   @IsNotEmpty()
+  fromUserId: string;
+
+  @ApiProperty()
+  @IsUUID()
+  @IsNotEmpty()
   toUserId: string;
 
   @ApiProperty()

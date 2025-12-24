@@ -41,4 +41,9 @@ export class CreateGroupExpenseDto {
   @ValidateNested({ each: true })
   @Type(() => ExpenseSplitDto)
   splits?: ExpenseSplitDto[];
+
+  @ApiProperty({ required: false, description: 'User ID who paid for this expense. Defaults to current user if not specified.' })
+  @IsOptional()
+  @IsUUID()
+  paidBy?: string;
 }

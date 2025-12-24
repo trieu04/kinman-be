@@ -58,4 +58,52 @@ export class ReportsService {
 
     return months;
   }
+
+  async getDailyTrend(userId: string, startDate?: Date, endDate?: Date) {
+    const end = endDate ? new Date(endDate) : new Date();
+    const start = startDate ? new Date(startDate) : new Date(end);
+
+    // Normalize range: default to last 30 days when start not provided
+    if (!startDate) {
+      start.setDate(end.getDate() - 29);
+    }
+
+    // Ensure time boundaries for inclusive range
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    const result = await this.dataSource
+      .getRepository(TransactionEntity)
+      .createQueryBuilder("transaction")
+      .select("DATE(transaction.date)", "date")
+      .addSelect("SUM(transaction.amount)", "total")
+      .addSelect("COUNT(*)", "count")
+      .where("transaction.user.id = :userId", { userId })
+      .andWhere("transaction.date BETWEEN :start AND :end", { start, end })
+      .groupBy("DATE(transaction.date)")
+      .orderBy("date", "ASC")
+      .getRawMany();
+
+    const map = new Map<string, { total: number; count: number }>();
+    result.forEach(item => {
+      const key = new Date(item.date).toISOString().slice(0, 10);
+      map.set(key, {
+        total: Number(item.total),
+        count: Number(item.count),
+      });
+    });
+
+    const daily: Array<{ date: string; total: number; count: number }> = [];
+    for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
+      const key = cursor.toISOString().slice(0, 10);
+      const stats = map.get(key);
+      daily.push({
+        date: key,
+        total: stats?.total ?? 0,
+        count: stats?.count ?? 0,
+      });
+    }
+
+    return daily;
+  }
 }
