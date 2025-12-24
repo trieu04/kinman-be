@@ -10,8 +10,8 @@ export class CreateCategoryDto {
 
   @ApiProperty({ enum: CategoryType })
   @IsEnum(CategoryType)
-  @IsNotEmpty()
-  type: CategoryType;
+  @IsOptional()
+  type?: CategoryType;
 
   @ApiProperty({ required: false })
   @IsOptional()

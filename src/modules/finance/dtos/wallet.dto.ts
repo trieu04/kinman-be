@@ -10,8 +10,8 @@ export class CreateWalletDto {
 
   @ApiProperty({ enum: WalletType })
   @IsEnum(WalletType)
-  @IsNotEmpty()
-  type: WalletType;
+  @IsOptional()
+  type?: WalletType;
 
   @ApiProperty()
   @IsNumber()
