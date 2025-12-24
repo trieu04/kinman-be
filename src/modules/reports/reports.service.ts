@@ -2,10 +2,10 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { TransactionEntity } from '../transactions/entities/transaction.entity';
-import { GroupExpenseEntity } from '../groups/entities/group-expense.entity';
-import { SettlementEntity } from '../groups/entities/settlement.entity';
-import { GroupEntity } from '../groups/entities/group.entity';
-import { CategoryEntity } from '../categories/entities/category.entity';
+import { GroupExpenseEntity } from '../finance/entities/group-expense.entity';
+import { SettlementEntity } from '../finance/entities/settlement.entity';
+import { GroupEntity } from '../finance/entities/group.entity';
+import { CategoryEntity } from '../finance/entities/category.entity';
 import { UserEntity } from '../auth/entities/user.entity';
 import { ReportQueryDto } from './dtos/report-query.dto';
 import {
@@ -72,8 +72,8 @@ export class ReportsService {
         });
 
         // Tính tổng chi tiêu (cả personal + group)
-        const personalTotal = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
-        const groupTotal = groupExpenses.reduce((sum, t) => sum + Number(t.amount), 0);
+        const personalTotal = transactions.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
+        const groupTotal = groupExpenses.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
         const totalSpent = personalTotal + groupTotal;
 
         // Group by category (từ transactions)
@@ -88,7 +88,7 @@ export class ReportsService {
             }
 
             const cat = byCategoryMap.get(catId)!;
-            cat.amount += Number(tx.amount);
+            cat.amount += Math.abs(Number(tx.amount));
             cat.count += 1;
         }
 
@@ -113,7 +113,7 @@ export class ReportsService {
             }
 
             const grp = byGroupMap.get(groupId)!;
-            grp.amount += Number(exp.amount);
+            grp.amount += Math.abs(Number(exp.amount));
             grp.count += 1;
         }
 
@@ -165,7 +165,7 @@ export class ReportsService {
             relations: ['payer'],
         });
 
-        const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+        const totalExpenses = expenses.reduce((sum, e) => sum + Math.abs(Number(e.amount)), 0);
 
         // By category - GroupExpense không có category, tạm thời để trống
         // Hoặc có thể dùng description để group
@@ -195,7 +195,7 @@ export class ReportsService {
         for (const exp of expenses) {
             const payerId = exp.payer.id;
             if (memberMap.has(payerId)) {
-                memberMap.get(payerId)!.paid += Number(exp.amount);
+                memberMap.get(payerId)!.paid += Math.abs(Number(exp.amount));
             }
         }
 
@@ -204,7 +204,7 @@ export class ReportsService {
             if (exp.splits && Array.isArray(exp.splits)) {
                 for (const split of exp.splits) {
                     if (memberMap.has(split.userId)) {
-                        memberMap.get(split.userId)!.owed += Number(split.amount);
+                        memberMap.get(split.userId)!.owed += Math.abs(Number(split.amount));
                     }
                 }
             }
