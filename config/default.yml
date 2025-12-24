@@ -27,3 +27,13 @@ magicLink:
 
 crypto:
   saltRounds: 8
+
+notification:
+  vapid:
+    # Generate VAPID keys using: npx web-push generate-vapid-keys
+    publicKey: ""
+    privateKey: ""
+    subject: "mailto:admin@kinman.app"
+  firebase:
+    enabled: false
+    # serviceAccountPath: "./firebase-service-account.json"
