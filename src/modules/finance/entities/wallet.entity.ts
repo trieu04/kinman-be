@@ -20,7 +20,15 @@ export class WalletEntity extends SoftDeleteEntity {
   })
   type: WalletType;
 
-  @Column("decimal", { precision: 18, scale: 2, default: 0 })
+  @Column("decimal", {
+    precision: 18,
+    scale: 2,
+    default: 0,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string | null) => (value === null ? null : Number(value)),
+    },
+  })
   balance: number;
 
   @Column({ default: "VND" })
