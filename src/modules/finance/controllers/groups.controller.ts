@@ -74,4 +74,9 @@ export class GroupsController {
   ) {
     return this.groupExpensesService.settleUp(userId, id, dto);
   }
+
+  @Post(":id/toggle-hidden")
+  toggleHidden(@Param("id") id: string, @GetUserId() userId: string) {
+    return this.groupsService.toggleHidden(userId, id);
+  }
 }

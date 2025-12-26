@@ -13,4 +13,7 @@ export class GroupMemberEntity extends SoftDeleteEntity {
 
   @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   joinedAt: Date;
+
+  @Column({ default: false })
+  isHidden: boolean;
 }

@@ -165,4 +165,17 @@ export class GroupsService {
 
     return group;
   }
+
+  async toggleHidden(userId: string, groupId: string) {
+    const member = await this.memberRepo.findOne({
+      where: { group: { id: groupId }, user: { id: userId } },
+    });
+
+    if (!member) {
+      throw new NotFoundException("Group not found or you are not a member");
+    }
+
+    member.isHidden = !member.isHidden;
+    await this.memberRepo.save(member);
+  }
 }
