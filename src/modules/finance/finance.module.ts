@@ -36,6 +36,9 @@ import { WalletsService } from "./services/wallets.service";
 // Notifications
 import { NotificationModule } from "../notification/notification.module";
 
+// Realtime
+import { RealtimeModule } from "../realtime/realtime.module";
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -51,6 +54,7 @@ import { NotificationModule } from "../notification/notification.module";
     ]),
     AuthModule,
     NotificationModule,
+    RealtimeModule,
   ],
   controllers: [
     CategoriesController,

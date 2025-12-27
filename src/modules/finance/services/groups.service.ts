@@ -8,6 +8,7 @@ import { AddMemberDto, CreateGroupDto } from "../dtos/group.dto";
 import { nanoid } from "nanoid";
 import { NotificationDispatcherService } from "../../notification/services/notification-dispatcher.service";
 import { NotificationType } from "../../notification/entities/notification.entity";
+import { RealtimeService } from "../../realtime/realtime.service";
 
 @Injectable()
 export class GroupsService {
@@ -19,6 +20,7 @@ export class GroupsService {
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
     private readonly notificationDispatcher: NotificationDispatcherService,
+    private readonly realtimeService: RealtimeService,
   ) {}
 
   async create(userId: string, dto: CreateGroupDto) {
@@ -122,6 +124,17 @@ export class GroupsService {
       });
     }
 
+    // Broadcast realtime event
+    this.realtimeService.notifyGroupUpdated(groupId, {
+      id: group.id,
+      name: group.name,
+      memberAdded: {
+        id: userToAdd.id,
+        name: userToAdd.name,
+        email: userToAdd.email,
+      },
+    });
+
     return member;
   }
 
@@ -162,6 +175,17 @@ export class GroupsService {
         });
       }
     }
+
+    // Broadcast realtime event
+    this.realtimeService.notifyGroupUpdated(group.id, {
+      id: group.id,
+      name: group.name,
+      memberJoined: {
+        id: userId,
+        name: joiningUser?.name,
+        email: joiningUser?.email,
+      },
+    });
 
     return group;
   }

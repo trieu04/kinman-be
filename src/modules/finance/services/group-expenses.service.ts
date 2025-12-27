@@ -9,6 +9,7 @@ import { SettlementEntity } from "../entities/settlement.entity";
 import { UserEntity } from "../../auth/entities/user.entity";
 import { NotificationDispatcherService } from "../../notification/services/notification-dispatcher.service";
 import { NotificationType } from "../../notification/entities/notification.entity";
+import { RealtimeService } from "../../realtime/realtime.service";
 
 @Injectable()
 export class GroupExpensesService {
@@ -21,6 +22,7 @@ export class GroupExpensesService {
     private readonly userRepo: Repository<UserEntity>,
     private readonly groupsService: GroupsService,
     private readonly notificationDispatcher: NotificationDispatcherService,
+    private readonly realtimeService: RealtimeService,
   ) {}
 
   async addExpense(userId: string, groupId: string, dto: CreateGroupExpenseDto) {
@@ -95,6 +97,15 @@ export class GroupExpensesService {
         },
       });
     }
+
+    // Broadcast realtime event to all group members
+    this.realtimeService.notifyExpenseAdded(groupId, {
+      id: savedExpense.id,
+      groupId,
+      description: dto.description,
+      amount: dto.amount,
+      paidBy: payer?.name || payer?.email,
+    });
 
     return savedExpense;
   }
@@ -221,6 +232,17 @@ export class GroupExpensesService {
       amount: dto.amount,
     });
 
-    return this.settlementRepo.save(settlement);
+    const saved = await this.settlementRepo.save(settlement);
+
+    // Broadcast realtime event
+    this.realtimeService.notifyDebtSettled(groupId, {
+      id: saved.id,
+      groupId,
+      fromUserId: dto.fromUserId,
+      toUserId: dto.toUserId,
+      amount: dto.amount,
+    });
+
+    return saved;
   }
 }
