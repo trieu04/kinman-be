@@ -10,6 +10,7 @@ import { AppModule } from "./app.module";
 import { configSwagger } from "./configs/swagger";
 import { QueryFailedErrorFilter } from "./common/filters/query-failed-error.filter";
 import { configCORS } from "./configs/cors";
+import { IoAdapter } from "@nestjs/platform-socket.io";
 
 declare const module: any;
 
@@ -18,6 +19,12 @@ async function bootstrap() {
   const logger = new Logger("Bootstrap");
 
   configCORS(app);
+
+  // Setup WebSocket adapter
+  app.useWebSocketAdapter(new IoAdapter(app));
+
+  // Set global prefix
+  app.setGlobalPrefix('api');
 
   // Get the port from the config
   const configService = app.get<ConfigService>(ConfigService);

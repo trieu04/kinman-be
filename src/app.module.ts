@@ -7,6 +7,7 @@ import { FinanceModule } from "./modules/finance/finance.module";
 import { AiModule } from "./modules/ai/ai.module";
 import { ReportsModule } from "./modules/reports/reports.module";
 import { NotificationModule } from "./modules/notification/notification.module";
+import { RealtimeModule } from "./modules/realtime/realtime.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { NotificationModule } from "./modules/notification/notification.module";
     HealthModule,
     AiModule,
     ReportsModule,
+    RealtimeModule,
     FinanceModule,
     NotificationModule,
   ],
